@@ -78,13 +78,13 @@ gaussian_train_11 = gaussianExpansion(time,conj(pulse_11),5,11);
 
 %%
 load('experimental_pulses_5g.mat');
-experiment = [gaussian_train_11];%; gaussian_train_11];
+experiment = [gaussian_train_9];%; gaussian_train_11];
 gaussian_train = experiment.params();
 
 %%
 %===== Reconstruction Parameters ============
-single_color = true; chirp = false; xcorr = true;
-harmonics = [11]; omega = Laser.SI2au_wavelength(800) * harmonics;
+single_color = true; chirp = false;
+harmonics = [9]; omega = Laser.SI2au_wavelength(800) * harmonics;
 percentages = [2 5 10 15 25 50 75 100];
 N_windows = 10;
 correlation_delay = linspace(-1000,1000,2000);
@@ -98,8 +98,9 @@ options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-10,...
     'forward','UseParallel',true,'Display','iter');
 %%
 %===== Reconstruction Functions =============
+xcorr = true;
 if xcorr
-    known_laser = gaussian_train_9.params();
+    known_laser = Laser(1.5e-2,Laser.SI2au_wavelength(800)*7,500,0,0,0).params();
     calc = @(basis,delay) matrixElementsCalculation_xcorr(initial_energy, ...
         N_free_states_l0,two_photon_dipoles_l0,l0_free_energies, ...
         N_free_states_l2,two_photon_dipoles_l2,l2_free_energies, ...
@@ -116,8 +117,10 @@ else
 end
 
 %===== Generate Data to Reconstruct =========
-known = calc(gaussian_train,correlation_delay);
-
+% known = calc(gaussian_train_9.params(),correlation_delay);
+known = calc(Laser(3e-3,Laser.SI2au_wavelength(800)*11,300,0,0,0).params(),correlation_delay);
+figure;
+plot(correlation_delay,known)
 %%
 % options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-10,...
 %     'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
