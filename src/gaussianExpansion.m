@@ -6,7 +6,7 @@ end
 
 color = Laser.au2SI_wavelength(800)*harmonic;
 known_color = true;
-chirp = false;
+chirp = true;
 
 N = length(data);
 % basis = [];
@@ -30,7 +30,7 @@ err = @(gaussians) (imag(Laser.generate(gaussians,chirp,false,color).calculate(t
 
 options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-16,...
     'StepTolerance',1e-16,'OptimalityTolerance',1e-10,...
-    'MaxFunctionEvaluations',1e6,'MaxIterations',5000,'FiniteDifferenceType', ...
+    'MaxFunctionEvaluations',1e6,'MaxIterations',50000,'FiniteDifferenceType', ...
     'forward','UseParallel',true ,'Display','iter-detailed');
 lower_bound = ones(N_gaussians,1) * Laser(-1,0.3,50,-1,min(time)).params(false,known_color,chirp);
 upper_bound = ones(N_gaussians,1) * Laser(1,1,1000,1,max(time)).params(false,known_color,chirp);
