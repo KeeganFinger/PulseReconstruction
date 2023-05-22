@@ -1,5 +1,4 @@
 close all; clear all;
-
 %%
 %===== Read Data ============================
 N_states = 500;
@@ -63,28 +62,42 @@ for state_one = 1:length(l1_bound_energies)
 end
 
 %%
-load('C:\Users\finge\MATLAB\Projects\PulseReconstruction\Data\macroscopic_7g_9th.mat','t','FFT');
-mask = -1000 < t & t < 1000;
-time = t(mask); 
-pulse_9 = FFT(mask);
-load('C:\Users\finge\MATLAB\Projects\PulseReconstruction\Data\macroscopic_7g_11th.mat','FFT','t');
-pulse_11 = FFT(mask);
-max_intensity = 3e-3; %Laser.SI2au_intensity(1e14);
-pulse_9 = (max_intensity / max(pulse_9)) * pulse_9;
-pulse_11 = (max_intensity / max(pulse_11)) * pulse_11;
-gaussian_train_9 = gaussianExpansion(time,conj(pulse_9),5,9);
-gaussian_train_11 = gaussianExpansion(time,conj(pulse_11),5,11);
-% save('experimental_pulses_5g.mat','time','pulse_9','pulse_11','gaussian_train_9','gaussian_train_11');
+gaussian_trains = {}; k = 1;
+N_gaussians = 7; max_intensity = 3e-3;
+for harm = [9 11]
+    [FFT,t] = filterHarmonic(harm);
+    mask = -1000 < t & t < 1000;
+    time = t(mask);
+    FFT = FFT(mask)*(max_intensity / max(FFT(mask)));
+    gaussian_trains{k} = gaussianExpansion(time,FFT,N_gaussians,harm);
+    k = k + 1;
+end
 
 %%
-load('experimental_pulses_5g.mat');
-experiment = [gaussian_train_9];%; gaussian_train_11];
-gaussian_train = experiment.params();
+load("experimental_pulses_5g.mat");
+experiment = [gaussian_train_9];
+% [FFT,t] = filterHarmonic(7);
+% mask = -1000 < t & t < 1000;
+% time = t(mask); 
+% pulse_7 = FFT(mask);
+% [FFT,t] = filterHarmonic(13);
+% pulse_13 = FFT(mask);
+% max_intensity = 3e-3; %Laser.SI2au_intensity(1e14);
+% pulse_7 = (max_intensity / max(pulse_7)) * pulse_7;
+% pulse_13 = (max_intensity / max(pulse_13)) * pulse_13;
+% gaussian_train_9 = gaussianExpansion(time,conj(pulse_7),5,7);
+% gaussian_train_11 = gaussianExpansion(time,conj(pulse_13),5,13);
+% % save('experimental_pulses_5g.mat','time','pulse_9','pulse_11','gaussian_train_9','gaussian_train_11');
+% 
+% %%
+% load('experimental_pulses_5g.mat');
+% experiment = [gaussian_train_9];%; gaussian_train_11];
+% gaussian_train = experiment.params();
 
 %%
 %===== Reconstruction Parameters ============
 single_color = true; chirp = false;
-harmonics = [9]; omega = Laser.SI2au_wavelength(800) * harmonics;
+harmonics = [11]; omega = Laser.SI2au_wavelength(800) * harmonics;
 percentages = [2 5 10 15 25 50 75 100];
 N_windows = 10;
 correlation_delay = linspace(-1000,1000,2000);
@@ -100,7 +113,7 @@ options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-10,...
 %===== Reconstruction Functions =============
 xcorr = true;
 if xcorr
-    known_laser = Laser(1.5e-2,Laser.SI2au_wavelength(800)*7,500,0,0,0).params();
+    known_laser = Laser(1.5e-2,Laser.SI2au_wavelength(800)*7,100,0,0,0).params();
     calc = @(basis,delay) matrixElementsCalculation_xcorr(initial_energy, ...
         N_free_states_l0,two_photon_dipoles_l0,l0_free_energies, ...
         N_free_states_l2,two_photon_dipoles_l2,l2_free_energies, ...
@@ -117,26 +130,16 @@ else
 end
 
 %===== Generate Data to Reconstruct =========
-% known = calc(gaussian_train_9.params(),correlation_delay);
+% known = calc(experiment.params(),correlation_delay);
 known = calc(Laser(3e-3,Laser.SI2au_wavelength(800)*11,300,0,0,0).params(),correlation_delay);
 figure;
-plot(correlation_delay,known)
-%%
-% options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-10,...
-%     'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
-%     'MaxFunctionEvaluations',1e4,'MaxIterations',50,'FiniteDifferenceType', ...
-%     'forward','UseParallel',true,'Display','iter');
-% initial_guess = [Laser(1.6e-3,0.5,300,1e-4,-200,0); Laser(1.6e-3,0.5,300,1e-4,400,0)];
-% guess = initial_guess.params(single_pulse,single_color,chirp);
-% lower_bound = ones(N_gaussians,1) * Laser(1e-4 - 100i,0.2,1,-1,-max(correlation_delay)).params(single_pulse,single_color,chirp);
-% upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,max(correlation_delay)).params(single_pulse,single_color,chirp);
-% err = @(basis) (calc(basis,correlation_delay) - known)./max(abs(known));
-% new_guess = lsqnonlin(err,guess,lower_bound,upper_bound,options);
+plot(correlation_delay,known);
+drawnow;
 
 %%
 %===== Reconstruct Data =====================
 filter = @(time) interp1(correlation_delay,known,time);
-gaussian_list = [2 4]; ind = 1;
+gaussian_list = [1]; ind = 1;
 guesses = cell(size(gaussian_list));
 for N_gaussians = gaussian_list
     if N_gaussians > 1
