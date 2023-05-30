@@ -1,6 +1,6 @@
 function [harmonic,time] = filterHarmonic(harm)
 
-load("Multiphoton\500000c_0um.mat","angle_saves");
+load("./data/500000c_0um.mat","angle_saves");
 harmonic_order = angle_saves.H;
 spectrum = angle_saves.E/max(abs(angle_saves.E));
 

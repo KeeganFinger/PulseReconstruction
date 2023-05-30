@@ -1,15 +1,26 @@
 close all; clear all;
+%===== Runtime Parameters ===================
+gaussian_expand = false; gaussian_basis_size = 7;
+
+max_intensity = 3e-3;
+known_harmonics = [11]; unknown_harmonics = [7];
+correlation_delay = linspace(-1000,1000,2000);
+
+reconstruction_gaussian_list = [1 2 4 6];
+chirp = false; cross_correlation = true;
+
+
 %%
 %===== Read Data ============================
 N_states = 500;
 for l=0:2
-    data = h5read("He.h5",char("/Energy_l"+l));
+    data = h5read("./data/He.h5",char("/Energy_l"+l));
     if l==0
         nmax = length(data(:,1));
         energies = zeros(nmax,3);
     end
     energies(1:nmax-l,l+1) = data(:,1) + 1i*data(:,2);
-    data = h5read("He.h5",char("/Psi_r_l"+l));
+    data = h5read("./data/He.h5",char("/Psi_r_l"+l));
     if l==0
         rmax = length(data(:,1,1));
         states = zeros(rmax,nmax,3);
@@ -17,8 +28,9 @@ for l=0:2
     states(:,1:nmax-l,l+1) = data(:,:,1) + 1i*data(:,:,2);
 end
 
-grid = h5read("parameters.h5",char("/EPS/r"));
-dr = h5read("parameters.h5",char("/EPS/delta_x"));
+grid = h5read("./data/parameters.h5",char("/EPS/r"));
+dr = h5read("./data/parameters.h5",char("/EPS/delta_x"));
+%%
 
 %===== L=0 Block ============================
 angular_momentum = 0;
@@ -62,45 +74,44 @@ for state_one = 1:length(l1_bound_energies)
 end
 
 %%
-gaussian_trains = {}; k = 1;
-N_gaussians = 7; max_intensity = 3e-3;
-for harm = [9 11]
-    [FFT,t] = filterHarmonic(harm);
-    mask = -1000 < t & t < 1000;
-    time = t(mask);
-    FFT = FFT(mask)*(max_intensity / max(FFT(mask)));
-    gaussian_trains{k} = gaussianExpansion(time,FFT,N_gaussians,harm);
-    k = k + 1;
+%===== Prepare Known Waveforms ==============
+if gaussian_expand
+    gaussian_trains = {}; k = 1;
+    for harm = unknown_harmonics
+        [FFT,t] = filterHarmonic(harm);
+        mask = -1000 < t & t < 1000;
+        time = t(mask);
+        FFT = FFT(mask)*(max_intensity / max(FFT(mask)));
+        gaussian_trains{k} = gaussianExpansion(time,FFT,gaussian_basis_size,harm);
+        k = k + 1;
+    end
+else
+    load("./data/experimental_pulses_7g.mat");
 end
 
 %%
-load("experimental_pulses_5g.mat");
-experiment = [gaussian_train_9];
-% [FFT,t] = filterHarmonic(7);
-% mask = -1000 < t & t < 1000;
-% time = t(mask); 
-% pulse_7 = FFT(mask);
-% [FFT,t] = filterHarmonic(13);
-% pulse_13 = FFT(mask);
-% max_intensity = 3e-3; %Laser.SI2au_intensity(1e14);
-% pulse_7 = (max_intensity / max(pulse_7)) * pulse_7;
-% pulse_13 = (max_intensity / max(pulse_13)) * pulse_13;
-% gaussian_train_9 = gaussianExpansion(time,conj(pulse_7),5,7);
-% gaussian_train_11 = gaussianExpansion(time,conj(pulse_13),5,13);
-% % save('experimental_pulses_5g.mat','time','pulse_9','pulse_11','gaussian_train_9','gaussian_train_11');
-% 
-% %%
-% load('experimental_pulses_5g.mat');
-% experiment = [gaussian_train_9];%; gaussian_train_11];
-% gaussian_train = experiment.params();
+%===== Prepare 'Experiment' Laser ===========
+experiment_components = [];
+for harm = unknown_harmonics
+    experiment_components = [experiment_components, 'gaussian_train_', num2str(harm), ';'];
+end
+eval(['experiment = [',experiment_components(1:end-1),'];']);
+if cross_correlation
+    experiment_components = [];
+    for harm = known_harmonics
+        experiment_components = [experiment_components, 'gaussian_train_', num2str(harm), ';'];
+    end
+    eval(['known_laser = [',experiment_components(1:end-1),'];']);
+end
+rescale_factor = max_intensity / max(abs(experiment.calculate(time)));
+temp_params = experiment.params();
+temp_params(:,3:4) = temp_params(:,3:4) .* rescale_factor;
+experiment = Laser.generate(temp_params,true,false);
 
 %%
 %===== Reconstruction Parameters ============
-single_color = true; chirp = false;
-harmonics = [11]; omega = Laser.SI2au_wavelength(800) * harmonics;
-percentages = [2 5 10 15 25 50 75 100];
-N_windows = 10;
-correlation_delay = linspace(-1000,1000,2000);
+omega = Laser.SI2au_wavelength(800) * unknown_harmonics;
+N_windows = 10; percentages = [2 5 10 15 25 50 75 100];
 window_width = max(correlation_delay)/N_windows;
 max_omega = max(omega) * 4;
 max_frequency = max_omega / (2*pi);
@@ -111,15 +122,13 @@ options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-10,...
     'forward','UseParallel',true,'Display','iter');
 %%
 %===== Reconstruction Functions =============
-xcorr = true;
-if xcorr
-    known_laser = Laser(1.5e-2,Laser.SI2au_wavelength(800)*7,100,0,0,0).params();
+if cross_correlation
     calc = @(basis,delay) matrixElementsCalculation_xcorr(initial_energy, ...
         N_free_states_l0,two_photon_dipoles_l0,l0_free_energies, ...
         N_free_states_l2,two_photon_dipoles_l2,l2_free_energies, ...
         N_bound_states_l1,two_photon_dipoles_l1,l1_bound_energies, ...
         N_free_states_l1,one_photon_dipoles_l1,l1_free_energies, ...
-        basis,known_laser,delay,omega,chirp);
+        basis,known_laser.params(),delay,omega,chirp);
 else
     calc = @(basis,delay) matrixElementsCalculation(initial_energy, ...
         N_free_states_l0,two_photon_dipoles_l0,l0_free_energies, ...
@@ -130,22 +139,22 @@ else
 end
 
 %===== Generate Data to Reconstruct =========
-% known = calc(experiment.params(),correlation_delay);
-known = calc(Laser(3e-3,Laser.SI2au_wavelength(800)*11,300,0,0,0).params(),correlation_delay);
-figure;
-plot(correlation_delay,known);
-drawnow;
+known = calc(experiment.params(),correlation_delay);
 
 %%
 %===== Reconstruct Data =====================
 filter = @(time) interp1(correlation_delay,known,time);
-gaussian_list = [1]; ind = 1;
-guesses = cell(size(gaussian_list));
-for N_gaussians = gaussian_list
+guesses = cell(size(reconstruction_gaussian_list)); ind = 1;
+for N_gaussians = reconstruction_gaussian_list
     if N_gaussians > 1
         single_pulse = false;
     else
         single_pulse = true;
+    end
+    if length(unknown_harmonics) > 1
+        single_color = false;
+    else
+        single_color = true;
     end
     initial_guess = []; gaussian_spacing = abs(max(correlation_delay)-min(correlation_delay))/N_gaussians/2;
     for i = 0:N_gaussians-1
@@ -172,5 +181,5 @@ for N_gaussians = gaussian_list
     guesses{ind} = Laser.generate(guess,chirp,single_pulse,omega); ind = ind + 1;
 end
 
-filename = ['fit_harm' strjoin(cellstr(num2str(harmonics','%02d')),'') '_Npulses' strjoin(cellstr(num2str(gaussian_list')),'') '_chirp' num2str(chirp) '.mat'];
+filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'') '_chirp' num2str(chirp) '.mat'];
 save(filename,'guesses','experiment');

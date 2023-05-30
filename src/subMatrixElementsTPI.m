@@ -22,8 +22,6 @@ for mid_state = 1:N_states
     delta_mi = middle_energy - initial_energy - frequency_one;
 
     prefactor = -0.25 * pi * amplitude_two * amplitude_one * period_two * period_one;
-% when the amplitudes are abs then the spectrum is good
-%     prefactor = 1;
     
     laser_factor_real = -0.5.*(period_one.^2 .* delta_mi.^2 + period_two.^2 .* delta_fm.^2);
     laser_factor_imag = 1i.*(position_two.*delta_fm + position_one.*delta_mi);
