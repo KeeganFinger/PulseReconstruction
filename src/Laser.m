@@ -45,52 +45,33 @@ classdef Laser
                 obj.position = position;
             end
         end
-        function prep = params(obj,single_pulse,single_color,chirp)
+        function prep = params(obj,single_color,chirp)
             % Conversion from laser object to list of parameters for the
             % matrix element calculations. This will also convert a list of
             % laser objects to a list of laser parameters.
             if nargin == 1
-                single_pulse = false;
                 single_color = false;
                 chirp = true;
             end
             if numel(obj) == 1
                 complex_amplitude = obj.amplitude .* exp(1i.*obj.phase);
-                if(~single_pulse)
-                    if(~single_color)
-                        % Many pulses with many frequencies
-                        if(chirp)
-                            prep = [obj.frequency obj.period real(complex_amplitude) imag(complex_amplitude) obj.position obj.chirp];
-                        else
-                            prep = [obj.frequency obj.period real(complex_amplitude) imag(complex_amplitude) obj.position];
-                        end
+                if(~single_color)
+                    % Unknown frequencies
+                    if(chirp)
+                        prep = [obj.frequency obj.period real(complex_amplitude) imag(complex_amplitude) obj.position obj.chirp];
                     else
-                        % Many pulses but one frequency
-                        if(chirp)
-                            prep = [obj.period real(complex_amplitude) imag(complex_amplitude) obj.position obj.chirp];
-                        else
-                            prep = [obj.period real(complex_amplitude) imag(complex_amplitude) obj.position];
-                        end
+                        prep = [obj.frequency obj.period real(complex_amplitude) imag(complex_amplitude) obj.position];
                     end
                 else
-                    if(~single_color)
-                        % One pulse with unknown frequency
-                        if(chirp)
-                            prep = [obj.frequency obj.period real(complex_amplitude) imag(complex_amplitude) obj.chirp];
-                        else
-                            prep = [obj.frequency obj.period real(complex_amplitude) imag(complex_amplitude)];
-                        end
+                    % Known/specified frequencies
+                    if(chirp)
+                        prep = [obj.period real(complex_amplitude) imag(complex_amplitude) obj.position obj.chirp];
                     else
-                        % One pulse with known frequency
-                        if(chirp)
-                            prep = [obj.period real(complex_amplitude) imag(complex_amplitude) obj.chirp];
-                        else
-                            prep = [obj.period real(complex_amplitude) imag(complex_amplitude)];
-                        end
+                        prep = [obj.period real(complex_amplitude) imag(complex_amplitude) obj.position];
                     end
                 end
             else
-                prep = cell2mat(arrayfun(@(o) o.params(single_pulse,single_color,chirp), obj, 'UniformOutput', false));
+                prep = cell2mat(arrayfun(@(o) o.params(single_color,chirp), obj, 'UniformOutput', false));
             end
         end
         function value = calculate(obj,time)
@@ -116,18 +97,14 @@ classdef Laser
         end
     end
     methods(Static)
-        function laser = generate(params,chirp,single_pulse,single_color_omega)
+        function laser = generate(params,chirp,single_color_omega)
             laser = [];
             if(chirp)
                 for i=1:size(params,1)
                     if size(params,2) == 4
                         new_laser = [single_color_omega params(i,1:end-1) 0 params(i,end)];
                     elseif size(params,2) == 5
-                        if(~single_pulse)
-                            new_laser = [single_color_omega params(i,:)];
-                        else
-                            new_laser = [params(i,1:end-1) 0 params(i,end)];
-                        end
+                        new_laser = [single_color_omega params(i,:)];
                     else
                         new_laser = params(i,:);
                     end
@@ -138,11 +115,7 @@ classdef Laser
                     if size(params,2) == 3
                         new_laser = [single_color_omega params(i,:) 0 0];
                     elseif size(params,2) == 4
-                        if(~single_pulse)
-                            new_laser = [single_color_omega params(i,:) 0];
-                        else
-                            new_laser = [params(i,:) 0 0];
-                        end
+                        new_laser = [single_color_omega params(i,:) 0];
                     else
                         new_laser = [params(i,:) 0];
                     end

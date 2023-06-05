@@ -19,29 +19,13 @@ for color = omega_list
 end
 
 % Fix data structure to include any parameters excluded from fitting space
-if(chirp)
-    if size(laser_list,2) == 4 % Single pulse of known color
-        laser_list = [color_override laser_list(:,1:end-1) zeros(size(laser_list,1),1) laser_list(:,end)];
-    elseif size(laser_list,2) == 5 % Single pulse of unknown color
-        if(size(laser_list,1) > 1)
-            laser_list = [color_override laser_list(:,:)];
-        else
-            laser_list = [laser_list(:,1:end-1) zeros(size(laser_list,1),1) laser_list(:,end)];
-        end
-    end 
-else
-    if size(laser_list,2) == 3 % Single pulse of known color
-        laser_list = [color_override laser_list zeros(size(laser_list,1),1)];
-    elseif size(laser_list,2) == 4 % Single pulse of unknown color
-        if(size(laser_list,1) > 1)
-            laser_list = [color_override laser_list(:,:)];
-        else
-            laser_list = [laser_list(:,:) zeros(size(laser_list,1),1)];
-        end
-    end % Default is multuple pulses of multiple unknown colors
+if(and(~chirp,size(laser_list,2)<6))
     laser_list = [laser_list zeros(size(laser_list,1),1)];
 end
 
+if(size(laser_list,2) < 6)
+    laser_list = [color_override laser_list(:,:)];
+end
 
 max_states = max([N_free_states_l0,N_free_states_l1,N_free_states_l2]);
 A = zeros(size(correlation_delay,2), ...

@@ -3,11 +3,11 @@ close all; clear all;
 gaussian_expand = false; gaussian_basis_size = 7;
 
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [9];
+known_harmonics = []; unknown_harmonics = [11];
 correlation_delay = linspace(-1000,1000,20001);
 tmax = 500; tmin = -500;
 
-reconstruction_gaussian_list = [4];
+reconstruction_gaussian_list = [1];
 chirp = false; cross_correlation = false;
 
 
@@ -152,22 +152,17 @@ known = calc(experiment.params(),correlation_delay,size(experiment.params(),1),[
 filter = @(time) interp1(correlation_delay,known,time);
 guesses = cell(size(reconstruction_gaussian_list)); ind = 1;
 for N_gaussians = reconstruction_gaussian_list
-    if N_gaussians > 1
-        single_pulse = false;
-    else
-        single_pulse = true;
-    end
     initial_guess = []; gaussian_spacing = abs(tmax-tmin)/N_gaussians/2;
     for i = 1:N_gaussians
         initial_guess = [initial_guess; Laser(max_intensity / N_gaussians,0.5,500,1e-4,(-1).^i*floor(i/2)*gaussian_spacing,0);];
     end
-    guess = initial_guess.params(single_pulse,single_color,chirp);
-    lower_bound = ones(N_gaussians,1) * Laser(1e-4 - 100i,0.2,1,-1,-max(correlation_delay)).params(single_pulse,single_color,chirp);
-    upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,max(correlation_delay)).params(single_pulse,single_color,chirp);
+    guess = initial_guess.params(single_color,chirp);
+    lower_bound = ones(N_gaussians,1) * Laser(1e-4 - 100i,0.2,1,-1,-max(correlation_delay)).params(single_color,chirp);
+    upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,max(correlation_delay)).params(single_color,chirp);
     if single_color
-        del_pos = [4 3] * size(guess,1) - 1;
+        del_pos = [4 3] * size(guess,1) - size(guess,1) + 1;
     else
-        del_pos = [5 4] * size(guess,1) - 1;
+        del_pos = [5 4] * size(guess,1) - size(guess,1) + 1;
     end
     guess = reshape(guess,1,[]);
     lower_bound = reshape(lower_bound,1,[]);
@@ -196,7 +191,7 @@ for N_gaussians = reconstruction_gaussian_list
         guess = [guess(1:pos-1) 0 guess(pos :end)];
     end
     guess = reshape(guess,N_gaussians,[]);
-    guesses{ind} = Laser.generate(guess,chirp,single_pulse,omega); ind = ind + 1;
+    guesses{ind} = Laser.generate(guess,chirp,omega); ind = ind + 1;
 end
 
 filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'') '_chirp' num2str(chirp) '.mat'];
