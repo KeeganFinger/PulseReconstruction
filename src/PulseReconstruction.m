@@ -3,12 +3,12 @@ close all; clear all;
 gaussian_expand = false; gaussian_basis_size = 7;
 
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [11];
+known_harmonics = []; unknown_harmonics = [9 11];
 correlation_delay = linspace(-1000,1000,20001);
 tmax = 500; tmin = -500;
 
-reconstruction_gaussian_list = [1];
-chirp = false; cross_correlation = false;
+reconstruction_gaussian_list = [1] * size(unknown_harmonics,2);
+chirp = false; fit_color = false; cross_correlation = false;
 
 
 %%
@@ -108,7 +108,7 @@ rescale_factor = max_intensity / max(abs(experiment.calculate(time)));
 temp_params = experiment.params();
 temp_params(:,3:4) = temp_params(:,3:4) .* rescale_factor;
 experiment = Laser.generate(temp_params,true,false);
-
+fit_color = ~fit_color;
 %%
 %===== Reconstruction Parameters ============
 omega = Laser.SI2au_wavelength(800) * unknown_harmonics;
@@ -121,11 +121,6 @@ options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-14,...
     'StepTolerance',1e-14,'OptimalityTolerance',1e-14,...
     'MaxFunctionEvaluations',1e4,'MaxIterations',5000,'FiniteDifferenceType', ...
     'forward','UseParallel',true,'Display','iter');
-if length(unknown_harmonics) > 1
-    single_color = false;
-else
-    single_color = true;
-end
 %%
 %===== Reconstruction Functions =============
 if cross_correlation
@@ -156,10 +151,10 @@ for N_gaussians = reconstruction_gaussian_list
     for i = 1:N_gaussians
         initial_guess = [initial_guess; Laser(max_intensity / N_gaussians,0.5,500,1e-4,(-1).^i*floor(i/2)*gaussian_spacing,0);];
     end
-    guess = initial_guess.params(single_color,chirp);
-    lower_bound = ones(N_gaussians,1) * Laser(1e-4 - 100i,0.2,1,-1,-max(correlation_delay)).params(single_color,chirp);
-    upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,max(correlation_delay)).params(single_color,chirp);
-    if single_color
+    guess = initial_guess.params(fit_color,chirp);
+    lower_bound = ones(N_gaussians,1) * Laser(1e-4 - 100i,0.2,1,-1,-max(correlation_delay)).params(fit_color,chirp);
+    upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,max(correlation_delay)).params(fit_color,chirp);
+    if fit_color
         del_pos = [4 3] * size(guess,1) - size(guess,1) + 1;
     else
         del_pos = [5 4] * size(guess,1) - size(guess,1) + 1;
