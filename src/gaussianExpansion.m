@@ -25,27 +25,27 @@ for gaussian = 2:N_gaussians
     basis = [basis; Laser(data(position),color,500,0,time(position)+offset)];
 end
 
-err = @(gaussians) (imag(Laser.generate(gaussians,chirp,false,color).calculate(time) - data) ...
+err = @(gaussians) (abs(Laser.generate(gaussians,chirp,color).calculate(time) - data) ...
     )./ max(abs(data));
 
 options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-16,...
     'StepTolerance',1e-16,'OptimalityTolerance',1e-10,...
-    'MaxFunctionEvaluations',1e6,'MaxIterations',5000,'FiniteDifferenceType', ...
+    'MaxFunctionEvaluations',1e7,'MaxIterations',10000,'FiniteDifferenceType', ...
     'forward','UseParallel',true ,'Display','iter-detailed');
-lower_bound = ones(N_gaussians,1) * Laser(-1,0.3,50,-1,min(time)).params(false,known_color,chirp);
-upper_bound = ones(N_gaussians,1) * Laser(1,1,1000,1,max(time)).params(false,known_color,chirp);
+lower_bound = ones(N_gaussians,1) * Laser(-1,0.3,50,-1,min(time)).params(known_color,chirp);
+upper_bound = ones(N_gaussians,1) * Laser(1,1,1000,1,max(time)).params(known_color,chirp);
 if(known_color)
     lower_bound(:,3) = -Inf; upper_bound(:,3) = Inf;
 else
     lower_bound(:,4) = -Inf; upper_bound(:,4) = Inf;
 end
-basis = lsqnonlin(err, basis.params(false,known_color,chirp), lower_bound, upper_bound, options);
+basis = lsqnonlin(err, basis.params(known_color,chirp), lower_bound, upper_bound, options);
 
-basis = Laser.generate(basis,chirp,false,color);
+basis = Laser.generate(basis,chirp,color);
 
 end
 
 function Z = out2(gaussians,time,chirp,harmonic)
     color = Laser.SI2au_wavelength(800) * harmonic;
-    [~,Z] = Laser.generate(gaussians,chirp,false,color).calculate(time);
+    [~,Z] = Laser.generate(gaussians,chirp,color).calculate(time);
 end

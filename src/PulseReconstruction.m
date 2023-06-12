@@ -1,9 +1,9 @@
 close all; clear all;
 %===== Runtime Parameters ===================
-gaussian_expand = false; gaussian_basis_size = 7;
+gaussian_expand = true; gaussian_basis_size = 15;
 
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [9 11];
+known_harmonics = []; unknown_harmonics = [7 9 11 13];
 correlation_delay = linspace(-1000,1000,20001);
 tmax = 500; tmin = -500;
 
