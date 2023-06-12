@@ -1,9 +1,10 @@
 #include <algorithm>
 #include "autocorrelation.h"
-#include <H5Cpp.h>
+#include "H5Cpp.h"
+#include "hdf5.h"
 #include <string>
 using namespace std;
-using namespace H5;
+//using namespace H5;
 
 double SI2au_wavelength(double wavelength) {
     return 1239.8 / wavelength / 27.211;
@@ -30,14 +31,14 @@ int main() {
     bool chirp = false; bool fit_color = false; bool cross_correlation = false;
 
     // Read data from h5 files
-//    const H5std_string FILENAME ("CppData.h5");
-//    const H5std_string LASER_GROUP ("/LASER");
-//    const H5std_string ATOM_GROUP ("/ATOM");
-//
-//    H5File *datafile = new H5File(FILENAME, H5F_ACC_RDONLY);
-//    Group *laser = new Group(datafile->openGroup(LASER_GROUP));
-//    Attribute *harm7 = new Attribute(laser->openAttribute("HARM7"));
-//    DataType *harm7_type = new DataType(harm7->getDataType());
+    const H5std_string FILENAME ("CppData.h5");
+    const H5std_string LASER_GROUP ("/LASER");
+    const H5std_string ATOM_GROUP ("/ATOM");
+
+    auto *datafile = new H5::H5File(FILENAME, H5F_ACC_RDONLY);
+    auto *laser = new H5::Group(datafile->openGroup(LASER_GROUP));
+    auto *harm7 = new H5::Attribute(laser->openAttribute("HARM7"));
+    auto *harm7_type = new H5::DataType(harm7->getDataType());
 //
 //    vector<vector<double>> gaussian_train_7;
 //    harm7->read(*harm7_type,&gaussian_train_7);
