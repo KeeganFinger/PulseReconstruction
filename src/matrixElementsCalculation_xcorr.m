@@ -149,5 +149,4 @@ for i = 1:size(known_laser_list,1)
 end
 
 crosscorrelation = squeeze(sum(sum(abs(A).^2,2),3));
-% crosscorrelation = squeeze(sum(abs(sum(A,2)).^2,3));
 end

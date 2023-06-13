@@ -9,15 +9,7 @@ known_color = true;
 chirp = true;
 
 N = length(data);
-% basis = [];
-% if N_gaussians == 1
-%     position = floor(N/2);
-%     basis = [Laser(data(position),color,500,0,time(position))];
-% else
-%     for position = floor(N/N_gaussians/N_gaussians):floor(N/N_gaussians):N
-%         basis = [basis; Laser(abs(data(position)),color,500,0,time(position))];
-%     end
-% end
+
 spacing = floor(N/N_gaussians/2); midpoint = floor(N/2); offset = 0;
 basis = [Laser(real(data(midpoint)),color,500,0,0)];
 for gaussian = 2:N_gaussians

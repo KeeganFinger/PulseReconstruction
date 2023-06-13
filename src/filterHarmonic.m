@@ -1,6 +1,6 @@
-function [harmonic,time] = filterHarmonic(harm)
+function [harmonic,time] = filterHarmonic(filename,harm)
 
-load("./data/500000c_0um.mat","angle_saves");
+load(filename,"angle_saves");
 harmonic_order = angle_saves.H;
 spectrum = angle_saves.E/max(abs(angle_saves.E));
 

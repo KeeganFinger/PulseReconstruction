@@ -1,6 +1,6 @@
 close all; clear all;
 %===== Runtime Parameters ===================
-gaussian_expand = false; gaussian_basis_size = 7;
+gaussian_expand = true; gaussian_basis_size = 7;
 
 max_intensity = 3e-3;
 known_harmonics = [11]; unknown_harmonics = [7];
@@ -10,18 +10,20 @@ tmax = 500; tmin = -500;
 reconstruction_gaussian_list = [1] * size(unknown_harmonics,2);
 chirp = false; fit_color = false; cross_correlation = true;
 
+data_dir = './data/';
+
 
 %%
 %===== Read Data ============================
 N_states = 500;
 for l=0:2
-    data = h5read("./data/He.h5",char("/Energy_l"+l));
+    data = h5read([data_dir 'He.h5'],char("/Energy_l"+l));
     if l==0
         nmax = length(data(:,1));
         energies = zeros(nmax,3);
     end
     energies(1:nmax-l,l+1) = data(:,1) + 1i*data(:,2);
-    data = h5read("./data/He.h5",char("/Psi_r_l"+l));
+    data = h5read([data_dir 'He.h5'],char("/Psi_r_l"+l));
     if l==0
         rmax = length(data(:,1,1));
         states = zeros(rmax,nmax,3);
@@ -29,8 +31,8 @@ for l=0:2
     states(:,1:nmax-l,l+1) = data(:,:,1) + 1i*data(:,:,2);
 end
 
-grid = h5read("./data/parameters.h5",char("/EPS/r"));
-dr = h5read("./data/parameters.h5",char("/EPS/delta_x"));
+grid = h5read([data_dir 'parameters.h5'],char("/EPS/r"));
+dr = h5read([data_dir 'parameters.h5'],char("/EPS/delta_x"));
 %%
 
 %===== L=0 Block ============================
@@ -79,7 +81,7 @@ end
 if gaussian_expand
     gaussian_trains = {}; k = 1;
     for harm = unknown_harmonics
-        [FFT,t] = filterHarmonic(harm);
+        [FFT,t] = filterHarmonic([data_dir '500000c_0um.mat'],harm);
         mask = -1000 < t & t < 1000;
         time = t(mask);
         FFT = FFT(mask)*(max_intensity / max(FFT(mask)));
@@ -87,7 +89,7 @@ if gaussian_expand
         k = k + 1;
     end
 else
-    load("./data/experimental_pulses_7g.mat");
+    load([data_dir 'experimental_pulses_7g.mat']);
 end
 
 %%
