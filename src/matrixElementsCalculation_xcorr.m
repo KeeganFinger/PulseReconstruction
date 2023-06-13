@@ -7,9 +7,9 @@ function crosscorrelation = matrixElementsCalculation_xcorr(initial_energy, ...
     N_gaussians,del_pos)
 
 for pos = flip(del_pos)
-    laser_list = [laser_list(1:pos-1) 0 laser_list(pos:end)];
+    unknown_laser_list = [unknown_laser_list(1:pos-1) 0 unknown_laser_list(pos:end)];
 end
-laser_list = reshape(laser_list,N_gaussians,[]);
+unknown_laser_list = reshape(unknown_laser_list,N_gaussians,[]);
 
 color_override = [];
 for color = omega_list

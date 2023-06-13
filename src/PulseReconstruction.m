@@ -1,14 +1,14 @@
 close all; clear all;
 %===== Runtime Parameters ===================
-gaussian_expand = true; gaussian_basis_size = 15;
+gaussian_expand = false; gaussian_basis_size = 7;
 
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [7 9 11 13];
+known_harmonics = [11]; unknown_harmonics = [7];
 correlation_delay = linspace(-1000,1000,20001);
 tmax = 500; tmin = -500;
 
 reconstruction_gaussian_list = [1] * size(unknown_harmonics,2);
-chirp = false; fit_color = false; cross_correlation = false;
+chirp = false; fit_color = false; cross_correlation = true;
 
 
 %%
