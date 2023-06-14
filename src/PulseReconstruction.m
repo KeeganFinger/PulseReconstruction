@@ -1,6 +1,6 @@
 close all; clear all;
 %===== Runtime Parameters ===================
-gaussian_expand = true; gaussian_basis_size = 7;
+gaussian_expand = false; gaussian_basis_size = 7;
 
 max_intensity = 3e-3;
 known_harmonics = [11]; unknown_harmonics = [7];
