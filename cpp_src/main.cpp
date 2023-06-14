@@ -1,7 +1,6 @@
 #include <algorithm>
 #include "autocorrelation.h"
-#include "H5Cpp.h"
-#include "hdf5.h"
+#include "h5_functions.h"
 #include <string>
 using namespace std;
 //using namespace H5;
@@ -31,24 +30,15 @@ int main() {
     bool chirp = false; bool fit_color = false; bool cross_correlation = false;
 
     // Read data from h5 files
-    const H5std_string FILENAME ("CppData.h5");
-    const H5std_string LASER_GROUP ("/LASER");
-    const H5std_string ATOM_GROUP ("/ATOM");
+    vector<vector<double>> test = h5readVectord("CppData.h5","/LASER/HARM7");
 
-    auto *datafile = new H5::H5File(FILENAME, H5F_ACC_RDONLY);
-    auto *laser = new H5::Group(datafile->openGroup(LASER_GROUP));
-    auto *harm7 = new H5::Attribute(laser->openAttribute("HARM7"));
-    auto *harm7_type = new H5::DataType(harm7->getDataType());
-//
-//    vector<vector<double>> gaussian_train_7;
-//    harm7->read(*harm7_type,&gaussian_train_7);
-//    for (auto i : gaussian_train_7) {
-//        for (auto j : i) {
-//            cout << j << ' ';
-//        }
-//        cout << '\n';
-//    }
-//    return 0;
+    for (const auto& i : test) {
+        for (auto j : i) {
+            cout << j << ' ';
+        }
+        cout << "\n";
+    }
+    return 0;
 
     int N_free_states_l0; vector<vector<double>> two_photon_dipoles_l0;
     int N_free_states_l2; vector<vector<double>> two_photon_dipoles_l2;
