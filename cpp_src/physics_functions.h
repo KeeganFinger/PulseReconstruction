@@ -9,6 +9,8 @@
 #include <complex>
 #include <vector>
 
+#define I std::complex<double>(0,1)
+
 using namespace std;
 
 template<typename T>

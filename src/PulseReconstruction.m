@@ -10,7 +10,7 @@ tmax = 500; tmin = -500;
 reconstruction_gaussian_list = [6] * size(unknown_harmonics,2);
 chirp = false; fit_color = false; cross_correlation = false;
 
-data_dir = './data/';
+data_dir = '../../data/';
 
 
 %%

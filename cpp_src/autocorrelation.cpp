@@ -34,17 +34,17 @@ vector<double> Autocorrelation(double initial_energy, int N_free_states_l0, vect
                                 TwoPhotonAmplitude(initial_energy, N_bound_states_l1, two_photon_dipoles_l1,
                                                    bound_energies_l1, two_photon_dipoles_l0.at(end_state), final_energy,
                                                    laser_one, laser_two, laser_one.at(1), laser_two.at(1)) *
-                                exp(1i * E_fi * this_delay);
+                                exp(I * E_fi * this_delay);
                         complex<double> term_two =
                                 TwoPhotonAmplitude(initial_energy, N_bound_states_l1, two_photon_dipoles_l1,
                                                    bound_energies_l1, two_photon_dipoles_l0.at(end_state), final_energy,
                                                    laser_one, laser_two, laser_one.at(1) + this_delay,
-                                                   laser_two.at(1)) * exp(1i * omega_one * this_delay);
+                                                   laser_two.at(1)) * exp(I * omega_one * this_delay);
                         complex<double> term_three =
                                 TwoPhotonAmplitude(initial_energy, N_bound_states_l1, two_photon_dipoles_l1,
                                                    bound_energies_l1, two_photon_dipoles_l0.at(end_state), final_energy,
                                                    laser_one, laser_two, laser_one.at(1),
-                                                   laser_two.at(1) + this_delay) * exp(1i * omega_two * this_delay);
+                                                   laser_two.at(1) + this_delay) * exp(I * omega_two * this_delay);
                         autocorrelation_signal += norm(term_one + term_two + term_three);
                     }
                 }
@@ -68,17 +68,17 @@ vector<double> Autocorrelation(double initial_energy, int N_free_states_l0, vect
                                 TwoPhotonAmplitude(initial_energy, N_bound_states_l1, two_photon_dipoles_l1,
                                                    bound_energies_l1, two_photon_dipoles_l2.at(end_state), final_energy,
                                                    laser_one, laser_two, laser_one.at(1), laser_two.at(1)) *
-                                exp(1i * E_fi * this_delay);
+                                exp(I * E_fi * this_delay);
                         complex<double> term_two =
                                 TwoPhotonAmplitude(initial_energy, N_bound_states_l1, two_photon_dipoles_l1,
                                                    bound_energies_l1, two_photon_dipoles_l2.at(end_state), final_energy,
                                                    laser_one, laser_two, laser_one.at(1) + this_delay,
-                                                   laser_two.at(1)) * exp(1i * omega_one * this_delay);
+                                                   laser_two.at(1)) * exp(I * omega_one * this_delay);
                         complex<double> term_three =
                                 TwoPhotonAmplitude(initial_energy, N_bound_states_l1, two_photon_dipoles_l1,
                                                    bound_energies_l1, two_photon_dipoles_l2.at(end_state), final_energy,
                                                    laser_one, laser_two, laser_one.at(1),
-                                                   laser_two.at(1) + this_delay) * exp(1i * omega_two * this_delay);
+                                                   laser_two.at(1) + this_delay) * exp(I * omega_two * this_delay);
                         autocorrelation_signal += norm(term_one + term_two + term_three);
                     }
                 }
@@ -93,7 +93,7 @@ vector<double> Autocorrelation(double initial_energy, int N_free_states_l0, vect
                 vector<double> laser = laser_list.at(n);
                 autocorrelation_signal += norm(
                         OnePhotonAmplitude(initial_energy, one_photon_dipoles_l1.at(end_state), final_energy, laser,
-                                           laser.at(1)) * (1.0 + exp(1i * E_fi * this_delay)));
+                                           laser.at(1)) * (1.0 + exp(I * E_fi * this_delay)));
             }
         }
         signal.emplace_back(autocorrelation_signal);

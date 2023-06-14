@@ -30,14 +30,30 @@ int main() {
     bool chirp = false; bool fit_color = false; bool cross_correlation = false;
 
     // Read data from h5 files
-    vector<vector<double>> test = h5readVectord("CppData.h5","/LASER/HARM7");
+	vector<double> test1;
+	h5readVector("../../CppData.h5","/ATOM/BOUND_ENERGIES_L1", test1);
 
-    for (const auto& i : test) {
-        for (auto j : i) {
-            cout << j << ' ';
-        }
-        cout << "\n";
-    }
+	for (auto i : test1) {
+		std::cout << i << std::endl;
+	}
+
+	vector<vector<double>> test2;
+	h5readMatrix("../../CppData.h5","/LASER/HARM7",test2);
+	for (auto i : test2) {
+		for (auto j : i) {
+			std::cout << j << " ";
+		}
+		std::cout << "\n";
+	}
+	int test3;
+	h5readScalar("../../CppData.h5","/ATOM/N_BOUND_L1",test3);
+	std::cout << test3 << std::endl;
+//    for (const auto& i : test) {
+//        for (auto j : i) {
+//            cout << j << ' ';
+//        }
+//        cout << "\n";
+//    }
     return 0;
 
     int N_free_states_l0; vector<vector<double>> two_photon_dipoles_l0;
