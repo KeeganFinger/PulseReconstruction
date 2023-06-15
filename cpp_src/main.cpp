@@ -49,7 +49,7 @@ int main() {
     h5readVectorD(datafile, "/ATOM/TWO_PHOTON_DIPOLE_L0", one_photon_dipoles_l1);
 
     double initial_energy;
-    h5readScalarD(datafile,"/ATOM/INITIAL_ENERGY",initial_energy;
+    h5readScalarD(datafile,"/ATOM/INITIAL_ENERGY",initial_energy);
 
     vector<double> free_energies_l0;
     h5readVectorD(datafile, "/ATOM/FREE_ENERGIES_L0", free_energies_l0);
