@@ -1,9 +1,9 @@
 #include <algorithm>
+#include <string>
 #include "autocorrelation.h"
 #include "h5_functions.h"
-#include <string>
+
 using namespace std;
-//using namespace H5;
 
 double SI2au_wavelength(double wavelength) {
     return 1239.8 / wavelength / 27.211;
@@ -29,48 +29,49 @@ int main() {
     }
     bool chirp = false; bool fit_color = false; bool cross_correlation = false;
 
+    string datafilename = "../../CppData.h5";
+
     // Read data from h5 files
-	vector<double> test1;
-	h5readVector("../../CppData.h5","/ATOM/BOUND_ENERGIES_L1", test1);
-
-	for (auto i : test1) {
-		std::cout << i << std::endl;
-	}
-
-	vector<vector<double>> test2;
-	h5readMatrix("../../CppData.h5","/LASER/HARM7",test2);
-	for (auto i : test2) {
-		for (auto j : i) {
-			std::cout << j << " ";
-		}
-		std::cout << "\n";
-	}
-	int test3;
-	h5readScalar("../../CppData.h5","/ATOM/N_BOUND_L1",test3);
-	std::cout << test3 << std::endl;
-//    for (const auto& i : test) {
-//        for (auto j : i) {
-//            cout << j << ' ';
-//        }
-//        cout << "\n";
-//    }
-    return 0;
+    H5::H5File datafile(datafilename.c_str(), H5F_ACC_RDONLY);
 
     int N_free_states_l0; vector<vector<double>> two_photon_dipoles_l0;
+    h5readScalarI(datafile,"/ATOM/N_FREE_L0",N_free_states_l0);
+    h5readMatrixD(datafile, "/ATOM/TWO_PHOTON_DIPOLE_L0", two_photon_dipoles_l0);
+
     int N_free_states_l2; vector<vector<double>> two_photon_dipoles_l2;
+    h5readScalarI(datafile,"/ATOM/N_FREE_L2",N_free_states_l2);
+    h5readMatrixD(datafile, "/ATOM/TWO_PHOTON_DIPOLE_L2", two_photon_dipoles_l2);
+
     int N_bound_states_l1; vector<double> two_photon_dipoles_l1;
+    h5readScalarI(datafile,"/ATOM/N_FREE_L0",N_bound_states_l1);
+    h5readVectorD(datafile, "/ATOM/TWO_PHOTON_DIPOLE_L1", two_photon_dipoles_l1);
+
     int N_free_states_l1; vector<double> one_photon_dipoles_l1;
+    h5readScalarI(datafile,"/ATOM/N_FREE_L1",N_free_states_l1);
+    h5readVectorD(datafile, "/ATOM/TWO_PHOTON_DIPOLE_L0", one_photon_dipoles_l1);
 
     double initial_energy;
+    h5readScalarD(datafile,"/ATOM/INITIAL_ENERGY",initial_energy;
+
     vector<double> free_energies_l0;
+    h5readVectorD(datafile, "/ATOM/FREE_ENERGIES_L0", free_energies_l0);
     vector<double> free_energies_l1;
+    h5readVectorD(datafile, "/ATOM/FREE_ENERGIES_L1", free_energies_l1);
     vector<double> free_energies_l2;
+    h5readVectorD(datafile, "/ATOM/FREE_ENERGIES_L2", free_energies_l2);
     vector<double> bound_energies_l1;
+    h5readVectorD(datafile, "/ATOM/BOUND_ENERGIES_L1", bound_energies_l1);
 
     vector<vector<double>> gaussian_train_7;
+    h5readMatrixD(datafile, "/LASER/HARM7", gaussian_train_7);
     vector<vector<double>> gaussian_train_9;
+    h5readMatrixD(datafile, "/LASER/HARM9", gaussian_train_9);
     vector<vector<double>> gaussian_train_11;
+    h5readMatrixD(datafile, "/LASER/HARM11", gaussian_train_11);
     vector<vector<double>> gaussian_train_13;
+    h5readMatrixD(datafile, "/LASER/HARM13", gaussian_train_13);
+
+    datafile.close();
 
     vector<vector<double>> experiment;
     for (auto gaussian : unknown_harmonics) {
@@ -101,6 +102,14 @@ int main() {
         gaussian[2] *= rescale_factor;
         gaussian[3] *= rescale_factor;
     }
+
+    for (auto laser : experiment) {
+        for (auto param : laser) {
+            cout << param << " ";
+        }
+        cout << "\n";
+    }
+    return 0;
 
     // Reconstruction parameters
     vector<double> omega; omega.reserve(unknown_harmonics.size());
