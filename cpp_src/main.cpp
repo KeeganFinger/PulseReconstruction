@@ -29,11 +29,9 @@ int main() {
     }
     bool chirp = false; bool fit_color = false; bool cross_correlation = false;
 
-    string datafilename = "../../CppData.h5";
+    string datafile = "../../CppData.h5";
 
     // Read data from h5 files
-    H5::H5File datafile(datafilename.c_str(), H5F_ACC_RDONLY);
-
     int N_free_states_l0; vector<vector<double>> two_photon_dipoles_l0;
     h5readScalarI(datafile,"/ATOM/N_FREE_L0",N_free_states_l0);
     h5readMatrixD(datafile, "/ATOM/TWO_PHOTON_DIPOLE_L0", two_photon_dipoles_l0);

@@ -11,10 +11,11 @@
 using namespace H5;
 
 template <typename T>
-void h5readMatrixD(H5FILE &datafile, std::string &var, T &datavec) {
+void h5readMatrixD(std::string file, std::string var, T &datavec) {
 	auto item_type = PredType::NATIVE_DOUBLE;
 	auto mem_type = VarLenType(&item_type);
 
+	H5File datafile(file.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = datafile.openDataSet(var.c_str());
 	DataSpace dataspace = dataset.getSpace();
 
@@ -44,10 +45,11 @@ void h5readMatrixD(H5FILE &datafile, std::string &var, T &datavec) {
 }
 
 template <typename T>
-void h5readVectorD(H5FILE &datafile, std::string &var, T &datavec) {
+void h5readVectorD(std::string file, std::string var, T &datavec) {
 	auto item_type = PredType::NATIVE_DOUBLE;
         auto mem_type = VarLenType(&item_type);
 
+        H5File datafile(file.c_str(), H5F_ACC_RDONLY);
         DataSet dataset = datafile.openDataSet(var.c_str());
         DataSpace dataspace = dataset.getSpace();
 
@@ -71,10 +73,11 @@ void h5readVectorD(H5FILE &datafile, std::string &var, T &datavec) {
 }
 
 template <typename T>
-void h5readScalarI(H5FILE &datafile, std::string &var, T &data) {
+void h5readScalarI(std::string file, std::string var, T &data) {
 	auto item_type = PredType::NATIVE_INT;
 	auto mem_type = VarLenType(&item_type);
 
+	H5File datafile(file.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = datafile.openDataSet(var.c_str());
 	DataSpace dataspace = dataset.getSpace();
 
@@ -96,10 +99,11 @@ void h5readScalarI(H5FILE &datafile, std::string &var, T &data) {
 }
 
 template <typename T>
-void h5readScalarD(H5FILE &datafile, std::string &var, T &data) {
+void h5readScalarD(std::string file, std::string var, T &data) {
     auto item_type = PredType::NATIVE_DOUBLE;
     auto mem_type = VarLenType(&item_type);
 
+    H5File datafile(file.c_str(), H5F_ACC_RDONLY);
     DataSet dataset = datafile.openDataSet(var.c_str());
     DataSpace dataspace = dataset.getSpace();
 
