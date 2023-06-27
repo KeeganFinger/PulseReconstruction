@@ -69,8 +69,6 @@ int main() {
     vector<vector<double>> gaussian_train_13;
     h5readMatrixD(datafile, "/LASER/HARM13", gaussian_train_13);
 
-    datafile.close();
-
     vector<vector<double>> experiment;
     for (auto gaussian : unknown_harmonics) {
         if (gaussian == 7) {
