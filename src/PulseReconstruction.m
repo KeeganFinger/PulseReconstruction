@@ -3,14 +3,21 @@ close all; clear all;
 gaussian_expand = false; gaussian_basis_size = 7;
 
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [11 13];
-correlation_delay = linspace(0,1000,5001);
+known_harmonics = []; unknown_harmonics = [11];
+tau_max = 1000; dtau = 0.2;
 tmax = 500; tmin = -500;
 
 reconstruction_gaussian_list = [1] * size(unknown_harmonics,2);
 chirp = false; fit_color = false; cross_correlation = false;
 
-data_dir = './data/';
+if cross_correlation
+	correlation_delay = linspace(-tau_max,tau_max,2*tau_max/dtau+1);
+else
+	correlation_delay = linspace(0,tau_max,tau_max/dtau+1);
+end
+
+data_dir = '../../data/';
+filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'') '_chirp' num2str(chirp) '.mat'];
 
 
 %%
@@ -191,5 +198,4 @@ for N_gaussians = reconstruction_gaussian_list
     guesses{ind} = Laser.generate(guess,chirp,omega); ind = ind + 1;
 end
 
-filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'') '_chirp' num2str(chirp) '.mat'];
 save(filename,'guesses','experiment');
