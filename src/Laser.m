@@ -102,9 +102,9 @@ classdef Laser
             if(chirp)
                 for i=1:size(params,1)
                     if size(params,2) == 4
-                        new_laser = [single_color_omega params(i,1:end-1) 0 params(i,end)];
+                        new_laser = [single_color_omega(i) params(i,1:end-1) 0 params(i,end)];
                     elseif size(params,2) == 5
-                        new_laser = [single_color_omega params(i,:)];
+                        new_laser = [single_color_omega(i) params(i,:)];
                     else
                         new_laser = params(i,:);
                     end
@@ -113,9 +113,9 @@ classdef Laser
             else
                 for i=1:size(params,1)
                     if size(params,2) == 3
-                        new_laser = [single_color_omega params(i,:) 0 0];
+                        new_laser = [single_color_omega(i) params(i,:) 0 0];
                     elseif size(params,2) == 4
-                        new_laser = [single_color_omega params(i,:) 0];
+                        new_laser = [single_color_omega(i) params(i,:) 0];
                     else
                         new_laser = [params(i,:) 0];
                     end

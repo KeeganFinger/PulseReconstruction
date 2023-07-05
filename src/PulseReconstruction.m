@@ -3,14 +3,14 @@ close all; clear all;
 gaussian_expand = false; gaussian_basis_size = 7;
 
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [11];
-correlation_delay = linspace(-1000,1000,20001);
+known_harmonics = []; unknown_harmonics = [11 13];
+correlation_delay = linspace(0,1000,5001);
 tmax = 500; tmin = -500;
 
-reconstruction_gaussian_list = [6] * size(unknown_harmonics,2);
+reconstruction_gaussian_list = [1] * size(unknown_harmonics,2);
 chirp = false; fit_color = false; cross_correlation = false;
 
-data_dir = '../../data/';
+data_dir = './data/';
 
 
 %%
@@ -120,7 +120,7 @@ max_omega = max(omega) * 4;
 max_frequency = max_omega / (2*pi);
 sample_step = 0.5 / max_frequency;
 options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-14,...
-    'StepTolerance',1e-14,'OptimalityTolerance',1e-14,...
+    'StepTolerance',1e-14,'OptimalityTolerance',1e-13,...
     'MaxFunctionEvaluations',1e4,'MaxIterations',5000,'FiniteDifferenceType', ...
     'forward','UseParallel',true,'Display','iter');
 %%

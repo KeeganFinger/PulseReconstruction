@@ -1,4 +1,4 @@
-close all; clear all;
+clear all; close all;
 % load("./results/results_0612.mat");
 
 time = linspace(-1000,1000,20001);
@@ -20,6 +20,9 @@ harm11_exact = experiment.calculate(time);
 harm11_chirp0_1g_vals = guesses{1}.calculate(time);
 
 load("./results/fit_harm11_Npulses2_chirp0.mat");
+% params = guesses{1}.params();
+% params(2,3:4) = params(2,3:4) * 1.07;
+% guesses{1} = Laser.generate(params,false,0);
 harm11_chirp0_2g_vals = guesses{1}.calculate(time);
 
 load("./results/fit_harm11_Npulses24_chirp0.mat");
@@ -27,6 +30,10 @@ harm11_chirp0_4g_vals = guesses{2}.calculate(time);
 
 load("./results/fit_harm11_Npulses6_chirp0.mat");
 harm11_chirp0_6g_vals = guesses{1}.calculate(time);
+
+load("./results/fit_harm1113_Npulses2_chirp0.mat");
+harm1113_exact = experiment.calculate(time);
+harm1113_chirp0_1g_vals = guesses{1}.calculate(time);
 
 % Chirped data
 load("./results/fit_harm09_Npulses12_chirp1.mat");
@@ -57,19 +64,9 @@ left_ylim_11 = [0 3.2e-3];
 right_ylim_11 = [0.59 0.67];
 x_lim_11 = [-700 900];
 
-% data_dir = './data/'; max_intensity = 3e-3;
-
-% [FFT,t] = filterHarmonic([data_dir '500000c_0um.mat'],9);
-% mask = -1000 < t & t < 1000;
-% time = t(mask);
-% harm9_exact = FFT(mask)*(max_intensity / max(FFT(mask)));
-% dt_9_exact = abs(time(2)-time(1));
-% 
-% [FFT,t] = filterHarmonic([data_dir '500000c_0um.mat'],11);
-% mask = -1000 < t & t < 1000;
-% time = t(mask);
-% harm11_exact = FFT(mask)*(max_intensity / max(FFT(mask)));
-% dt_11_exact = abs(time(2)-time(1));
+left_ylim_1113 = [-6e-3 6e-3];
+right_ylim_1113 = [0 1];
+x_lim_1113 = [-700 900];
 
 dt = abs(time(2)-time(1));
 
@@ -119,9 +116,17 @@ harm11_chirp1_2g_omega = zeros(size(harm11_chirp1_2g_phase));
 % harm11_chirp1_6g_phase = unwrap(angle(harm11_chirp1_6g_vals));
 % harm11_chirp1_6g_omega = zeros(size(harm11_chirp1_6g_phase));
 
+% 11th + 13th Autocorrelation
+harm1113_exp_phase = unwrap(angle(conj(harm1113_exact)));
+harm1113_exp_omega = zeros(size(harm1113_exp_phase));
+
+harm1113_chirp0_1g_phase = unwrap(angle(conj(harm1113_chirp0_1g_vals)));
+harm1113_chirp0_1g_omega = zeros(size(harm1113_chirp0_1g_phase));
+
 for t = 2:length(time)-1
     harm9_exp_omega(t) = (harm9_exp_phase(t+1) - harm9_exp_phase(t-1))/(2 * dt);
     harm11_exp_omega(t) = (harm11_exp_phase(t+1) - harm11_exp_phase(t-1))/(2 * dt);
+    harm1113_exp_omega(t) = (harm1113_exp_phase(t+1) - harm1113_exp_phase(t-1))/(2 * dt);
 end
 
 for t = 2:length(time)-1
@@ -145,6 +150,8 @@ for t = 2:length(time)-1
     harm11_chirp1_2g_omega(t) = (harm11_chirp1_2g_phase(t+1) - harm11_chirp1_2g_phase(t-1))/(2 * dt);
 %     harm11_chirp1_4g_omega(t) = (harm11_chirp1_4g_phase(t+1) - harm11_chirp1_4g_phase(t-1))/(2 * dt);
 %     harm11_chirp1_6g_omega(t) = -(harm11_chirp1_6g_phase(t+1) - harm11_chirp1_6g_phase(t-1))/(2 * dt);
+
+    harm1113_chirp0_1g_omega(t) = (harm1113_chirp0_1g_phase(t+1) - harm1113_chirp0_1g_phase(t-1))/(2 * dt);
 end
 %%
 figure(); tiles_9_chirp0 = tiledlayout(2,2);
@@ -361,3 +368,56 @@ linkaxes([ax1_11_chirp1,ax2_11_chirp1],'y')
 linkaxes([ax3_11_chirp1,ax4_11_chirp1],'y')
 linkaxes([ax1_11_chirp1,ax3_11_chirp1],'x')
 linkaxes([ax2_11_chirp1,ax4_11_chirp1],'x')
+%%
+figure(); tiles_1113_chirp0 = tiledlayout(2,2);
+title(tiles_1113_chirp0,"11th + 13th Harmonic Reconstruction - Chirp",'Interpreter','latex');
+tiles_1113_chirp0.Padding = 'compact'; tiles_1113_chirp0.TileSpacing = 'compact';
+%%
+ax1_1113_chirp0 = nexttile; hold on; shift = 0;
+title("1 Gaussian",'Interpreter','latex');
+yyaxis left; ylabel(left_ylabel,'Interpreter','latex');
+ylim(left_ylim_1113); xlabel("Time (a.u.)",'Interpreter','latex');
+plot(ax1_1113_chirp0,time,abs(harm1113_exact),'--','Color',left_ycolor);
+plot(ax1_1113_chirp0,time - shift,abs(harm1113_chirp0_1g_vals),'-','Color',left_ycolor);
+yyaxis right; ylabel(right_ylabel,'Interpreter','latex');
+plot(ax1_1113_chirp0,time,harm1113_exp_omega,'--','Color',right_ycolor)
+plot(ax1_1113_chirp0,time - shift,harm1113_chirp0_1g_omega,'-','Color',right_ycolor)
+xlim(x_lim_1113); ylim(right_ylim_1113);
+%%
+hold off; ax2_1113_chirp0 = nexttile; hold on; shift = 0;
+title("2 Gaussians",'Interpreter','latex');
+yyaxis left; ylabel("$$|\tilde{f}(t)|$$ (a.u.)",'Interpreter','latex');
+ylim(left_ylim_1113); xlabel("Time (a.u.)",'Interpreter','latex');
+plot(ax2_1113_chirp0,time,abs(harm1113_exact),'--','Color',left_ycolor);
+% plot(ax2_1113_chirp0,time - shift,abs(harm1113_chirp0_2g_vals),'-','Color',left_ycolor);
+yyaxis right; ylabel("$$\omega(t)$$ (a.u.)",'Interpreter','latex');
+plot(ax2_1113_chirp0,time,harm1113_exp_omega,'--','Color',right_ycolor)
+% plot(ax2_1113_chirp0,time - shift,harm1113_chirp0_2g_omega,'-','Color',right_ycolor)
+xlim(x_lim_1113); ylim(right_ylim_1113);
+%%
+hold off; ax3_1113_chirp0 = nexttile; hold on; shift = 0;
+title("4 Gaussians",'Interpreter','latex');
+yyaxis left; ylabel("$$|\tilde{f}(t)|$$ (a.u.)",'Interpreter','latex');
+ylim(left_ylim_1113); xlabel("Time (a.u.)",'Interpreter','latex');
+plot(ax3_1113_chirp0,time,abs(harm1113_exact),'--','Color',left_ycolor);
+% plot(ax3_1113_chirp0,time -shift,abs(harm1113_chirp0_4g_vals),'-','Color',left_ycolor);
+yyaxis right; ylabel("$$\omega(t)$$ (a.u.)",'Interpreter','latex');
+plot(ax3_1113_chirp0,time,harm1113_exp_omega,'--','Color',right_ycolor)
+% plot(ax3_1113_chirp0,time - shift,harm1113_chirp0_4g_omega,'-','Color',right_ycolor)
+xlim(x_lim_1113); ylim(right_ylim_1113);
+%%
+hold off; ax4_1113_chirp0 = nexttile; hold on; shift = 0;
+title("6 Gaussians",'Interpreter','latex');
+yyaxis left; ylabel("$$|\tilde{f}(t)|$$ (a.u.)",'Interpreter','latex');
+ylim(left_ylim_1113); xlabel("Time (a.u.)",'Interpreter','latex');
+plot(ax4_1113_chirp0,time,abs(harm1113_exact),'--','Color',left_ycolor);
+% plot(ax4_1113,time - shift,abs(harm1113_chirp0_4g_vals),'-','Color',left_ycolor);
+yyaxis right; ylabel("$$\omega(t)$$ (a.u.)",'Interpreter','latex');
+plot(ax4_1113_chirp0,time,harm1113_exp_omega,'--','Color',right_ycolor)
+% plot(ax4_1113,time - shift,harm1113_chirp0_6g_omega,'-','Color',right_ycolor)
+xlim(x_lim_1113); ylim(right_ylim_1113);
+%%
+linkaxes([ax1_1113_chirp0,ax2_1113_chirp0],'y')
+linkaxes([ax3_1113_chirp0,ax4_1113_chirp0],'y')
+linkaxes([ax1_1113_chirp0,ax3_1113_chirp0],'x')
+linkaxes([ax2_1113_chirp0,ax4_1113_chirp0],'x')
