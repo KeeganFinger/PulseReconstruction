@@ -1,8 +1,14 @@
 function [harmonic,time] = filterHarmonic(filename,harm)
 
-load(filename,"angle_saves");
+load(filename,'angle_saves');
 harmonic_order = angle_saves.H;
 spectrum = angle_saves.E/max(abs(angle_saves.E));
+
+% hhg = importdata(filename);
+
+% harmonic_order = hhg(:,1) ./ Laser.SI2au_wavelength(800);
+% spectrum = hhg(:,2) + 1i * hhg(:,3);
+% spectrum = spectrum ./ max(abs(spectrum));
 
 %===== Filter Selected Harmonic =============
 beta = 0.35;

@@ -1,16 +1,23 @@
 close all; clear all;
 %===== Runtime Parameters ===================
-gaussian_expand = false; gaussian_basis_size = 7;
+gaussian_expand = true; gaussian_basis_size = 16;
 
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [11 13];
-correlation_delay = linspace(0,1000,5001);
+known_harmonics = [11]; unknown_harmonics = [7];
+tau_max = 1000; dtau = 0.2;
 tmax = 500; tmin = -500;
 
 reconstruction_gaussian_list = [1] * size(unknown_harmonics,2);
-chirp = false; fit_color = false; cross_correlation = false;
+chirp = false; fit_color = false; cross_correlation = true;
+
+if cross_correlation
+	correlation_delay = linspace(-tau_max,tau_max,2*tau_max/dtau+1);
+else
+	correlation_delay = linspace(0,tau_max,tau_max/dtau+1);
+end
 
 data_dir = './data/';
+filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'') '_chirp' num2str(chirp) '.mat'];
 
 
 %%
@@ -80,14 +87,17 @@ end
 %===== Prepare Known Waveforms ==============
 if gaussian_expand
     gaussian_trains = {}; k = 1;
+    exact = [];
     for harm = unknown_harmonics
         [FFT,t] = filterHarmonic([data_dir '500000c_0um.mat'],harm);
-        mask = -1000 < t & t < 1000;
+        mask = -600 < t & t < 1200;
         time = t(mask);
         FFT = FFT(mask)*(max_intensity / max(FFT(mask)));
+        exact = [exact; FFT];
         gaussian_trains{k} = gaussianExpansion(time,FFT,gaussian_basis_size,harm);
         k = k + 1;
     end
+    save([data_dir 'experimental_pulses_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_' num2str(gaussian_basis_size) 'g.mat'], 'gaussian_trains', 'exact', 'time');
 else
     load([data_dir 'experimental_pulses_7g.mat']);
 end
@@ -126,19 +136,23 @@ options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-14,...
 %%
 %===== Reconstruction Functions =============
 if cross_correlation
-    calc = @(basis,delay,N_gaussians,del_pos) matrixElementsCalculation_xcorr(initial_energy, ...
+    calc = @(basis,delay,N_gaussians,del_pos) squeeze(sum(sum(abs( ...
+        matrixElementsCalculation_xcorr(initial_energy, ...
         N_free_states_l0,two_photon_dipoles_l0,l0_free_energies, ...
         N_free_states_l2,two_photon_dipoles_l2,l2_free_energies, ...
         N_bound_states_l1,two_photon_dipoles_l1,l1_bound_energies, ...
         N_free_states_l1,one_photon_dipoles_l1,l1_free_energies, ...
-        basis,known_laser.params(),delay,omega,chirp,N_gaussians,del_pos);
+        basis,known_laser.params(),delay,omega,chirp,N_gaussians,del_pos) ...
+        ).^2,2),3));
 else
-    calc = @(basis,delay,N_gaussians,del_pos) matrixElementsCalculation(initial_energy, ...
+    calc = @(basis,delay,N_gaussians,del_pos) squeeze(sum(sum(abs( ...
+        matrixElementsCalculation(initial_energy, ...
         N_free_states_l0,two_photon_dipoles_l0,l0_free_energies, ...
         N_free_states_l2,two_photon_dipoles_l2,l2_free_energies, ...
         N_bound_states_l1,two_photon_dipoles_l1,l1_bound_energies, ...
         N_free_states_l1,one_photon_dipoles_l1,l1_free_energies, ...
-        basis,delay,omega,chirp,N_gaussians,del_pos);
+        basis,delay,omega,chirp,N_gaussians,del_pos) ...
+        ).^2,2),3));
 end
 
 %===== Generate Data to Reconstruct =========
@@ -191,5 +205,4 @@ for N_gaussians = reconstruction_gaussian_list
     guesses{ind} = Laser.generate(guess,chirp,omega); ind = ind + 1;
 end
 
-filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'') '_chirp' num2str(chirp) '.mat'];
 save(filename,'guesses','experiment');
