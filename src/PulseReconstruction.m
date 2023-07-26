@@ -1,6 +1,6 @@
 close all; clear all;
 %===== Runtime Parameters ===================
-gaussian_expand = true; gaussian_basis_size = 16;
+gaussian_expand = false; gaussian_basis_size = 16;
 
 max_intensity = 3e-3;
 known_harmonics = [11]; unknown_harmonics = [7];
@@ -99,7 +99,8 @@ if gaussian_expand
     end
     save([data_dir 'experimental_pulses_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'') '_' num2str(gaussian_basis_size) 'g.mat'], 'gaussian_trains', 'exact', 'time');
 else
-    load([data_dir 'experimental_pulses_7g.mat']);
+    load([data_dir 'experimental_pulses_16g.mat']);
+    time = linspace(-1000,1000,10000);
 end
 
 %%
