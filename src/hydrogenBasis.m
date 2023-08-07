@@ -1,6 +1,6 @@
 % Return the basis vectors and corresponding energies for the initial and
-% final states
-function [states,energies] = basisCalculation(r,N_states,l)
+% final states of Hydrogen
+function [states,energies] = hydrogenBasis(r,N_states,l)
 
 %============= Grid Parameters ==============
 dr = r(2)-r(1);
@@ -19,6 +19,6 @@ H = H + diag(-1./r);
 for state=1:N_states
     total = sum(abs(states(:,state)).^2)*dr;
     states(:,state) = states(:,state)./sqrt(total);
-end
+end % Loop over states
 
-end
+end % Function end

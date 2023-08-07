@@ -1,3 +1,4 @@
+% Return contribution of given state and photon energy for one photon
 function S = subMatrixElementsSPI(dipole,initial_energy,final_energy, ...
     final_state,laser_parameters,position)
 
@@ -7,7 +8,6 @@ period = 1/sqrt(1/laser_parameters(2)^2 + 1i*laser_parameters(6));
 amplitude = laser_parameters(3) + 1i*laser_parameters(4);
 
 %===== Matrix Element =======================
-% prefactor = -1i .* sqrt(pi/2) .* amplitude .* period; %does this period get affected by the chirp?
 prefactor = -1i .* sqrt(pi/2) .* amplitude .* laser_parameters(2);
 
 delta_fi = final_energy - initial_energy - frequency;
@@ -16,4 +16,4 @@ laser = exp(laser_factor);
 
 S = prefactor .* dipole(final_state,1,1) .* laser;
 
-end
+end % Function end

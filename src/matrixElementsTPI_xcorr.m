@@ -14,10 +14,11 @@ for end_state = 1:N_states_final
     final_energy = final_energies(end_state);
     A(1,end_state,1) = final_energy;
 
+    %===== Calculate Contribution of State ==
     A(2,end_state,:) = subMatrixElementsTPI(initial_energy, ...
         N_states_middle,dipole_middle,middle_energies, ...
         end_state,dipole_final,final_energy, ...
         laser_parameters_one,laser_parameters_two, ...
         position_one+correlation_delay_one,position_two+correlation_delay_two);
-end
-end
+end % Loop over end states
+end % Function end
