@@ -30,10 +30,10 @@ data_dir = './data/';
 filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'')...
             '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'')...
             '_chirp' num2str(chirp) '.mat'];
-%========== Testing Parameters ==============
-precompute = false;
-load('fit_harm09_Npulses4_chirp0.mat','guesses');
-laser = guesses{1};
+%========== Overload Parameters =============
+overload_guess = false;
+overload_file = 'fit_harm09_Npulses4_chirp0.mat';
+overload_var = 'guesses';
 %========== Setup Delay Sweep ===============
 tau_max = 1000; dtau = 0.2;
 if cross_correlation
@@ -183,6 +183,13 @@ end
 known = calc(experiment.params(),correlation_delay,size(experiment.params(),1),[]);
 
 %%
+%===== Overload Initial Guess ===============
+if overload_guess
+    load(overload_file,overload_var);
+    laser = guesses{1};
+end
+
+%%
 %===== Reconstruct Data =====================
 filter = @(time) interp1(correlation_delay,known,time);
 guesses = cell(size(reconstruction_gaussian_list));
@@ -191,10 +198,10 @@ field_error = cell(size(reconstruction_gaussian_list)); ind = 1;
 try % Try-catch to dump results on error
     for N_gaussians = reconstruction_gaussian_list
         %===== Generate Initial Guess ===========
-        if isempty(laser)
+        if ~overload_guess
             initial_guess = []; gaussian_spacing = abs(tmax - tmin) / N_gaussians / 4;
             for i = 1:N_gaussians
-                initial_guess = [initial_guess; Laser(max_intensity / N_gaussians,0.5,500,1e-4,(-1).^i*floor(i/2)*gaussian_spacing,0);];
+                initial_guess = [initial_guess; Laser(max_intensity,0.5,500,1e-4,(-1).^i*floor(i/2)*gaussian_spacing,0);];
             end
         else
             initial_guess = laser;
