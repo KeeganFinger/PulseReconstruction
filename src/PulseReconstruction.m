@@ -1,6 +1,4 @@
 %TODO
-% Sync PC, Terra, and Github sources
-% Expand Helium macroscopic data
 % One gaussian Helium 9th harmonic
 % Two gaussian Helium 9th harmonic
 % One gaussian Helium 11th harmonic
@@ -13,7 +11,7 @@ close all; clear all;
 %%
 %===== Runtime Parameters ===================
 %========== Comparison Basis Parameters =====
-gaussian_expand = true; gaussian_basis_size = 16;
+gaussian_expand = false; gaussian_basis_size = 16;
 %========== Laser Parameters ================
 max_intensity = 3e-3;
 known_harmonics = []; unknown_harmonics = [9];
