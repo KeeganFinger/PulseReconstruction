@@ -127,7 +127,7 @@ if gaussian_expand
     end % Loop over `unknown_harmonics`
     save('expanded_harmonics.mat','gaussian_trains');
 else % Use precomputed data if available
-    load([data_dir 'experimental_pulses_16g.mat']);
+    load([data_dir 'helium_experiment_16g.mat']);
 end
 
 %%
