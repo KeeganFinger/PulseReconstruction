@@ -8,7 +8,7 @@ function [harmonic,time] = filterHarmonic(filename,harm)
 
 hhg = importdata(filename);
 
-harmonic_order = hhg(:,1) * 13.6./ Laser.SI2au_wavelength(800);
+harmonic_order = hhg(:,1) * 13.6;
 spectrum = hhg(:,2) + 1i * hhg(:,3);
 spectrum = spectrum ./ max(abs(spectrum));
 
