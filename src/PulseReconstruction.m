@@ -1,5 +1,5 @@
 %TODO
-% -One gaussian Helium 9th harmonic
+% -One gaussian Helium 9th harmonic - check autocorrelation signal
 % -Two gaussian Helium 9th harmonic
 % -One gaussian Helium 11th harmonic
 % -Two gaussian Helium 11th harmonic
@@ -14,14 +14,14 @@ close all; clear all;
 gaussian_expand = false; gaussian_basis_size = 16;
 %========== Laser Parameters ================
 max_intensity = 3e-3;
-known_harmonics = []; unknown_harmonics = [9 11];
+known_harmonics = []; unknown_harmonics = [9];
 tmin = -1000; tmax = 1000; time = linspace(tmin,tmax,floor(2*tmax)+1);
 %========== Reconstruction Parameters =======
 reconstruction_gaussian_list = [1] * size(unknown_harmonics,2);
-chirp = false; fit_color = false; cross_correlation = false;
-checkpoint = true;
+chirp = true; fit_color = false; cross_correlation = false;
+checkpoint = true; freeze_nochirp = true;
 N_windows = 10; percentages = [5 10 15 25 50 75 100];
-N_iterations = 500; N_epochs = 2;
+N_iterations = 50; N_epochs = 2;
 options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-16,...
     'StepTolerance',1e-16,'OptimalityTolerance',1e-16,...
     'MaxFunctionEvaluations',N_iterations*20,'MaxIterations',N_iterations,...
@@ -33,7 +33,7 @@ filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'')..
             '_chirp' num2str(chirp) '.mat'];
 %========== Overload Parameters =============
 overload_guess = true;
-overload_file = 'fit_harm0911_Npulses2_chirp0.mat';
+overload_file = './results/helium/fit_harm09_Npulses1_chirp0.mat';
 overload_var = 'guesses';
 %========== Setup Delay Sweep ===============
 tau_max = 1000; dtau = 0.2;
@@ -195,9 +195,10 @@ end
 filter = @(time) interp1(correlation_delay,known,time);
 guesses = cell(size(reconstruction_gaussian_list));
 ion_error = cell(size(reconstruction_gaussian_list));
-field_error = cell(size(reconstruction_gaussian_list)); ind = 1;
+field_error = cell(size(reconstruction_gaussian_list)); 
 try % Try-catch to dump results on error
     for epoch = 1:N_epochs
+        ind = 1;
         for N_gaussians = reconstruction_gaussian_list
             %===== Generate Initial Guess ===========
             if epoch == 1 % Use "random" for first round
@@ -212,25 +213,31 @@ try % Try-catch to dump results on error
             else % Use previous epoch's best for next round
                 initial_guess = Laser.generate(guess,chirp,omega_list);
             end
-            guess = initial_guess.params(fit_color,chirp);
-            %===== Set Parameter Bounds =============
-            lower_bound = ones(N_gaussians,1) * Laser(-10 - 100i,0.2,1,-1,tmin).params(fit_color,chirp);
-            upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,tmax).params(fit_color,chirp);
-            %===== Determine Unnecessary Parameters =
-            if fit_color
-                del_pos = [4 3] * size(guess,1) - size(guess,1) + 1;
+            if ~freeze_nochirp
+                guess = initial_guess.params(fit_color,chirp);
+                %===== Set Parameter Bounds =============
+                lower_bound = ones(N_gaussians,1) * Laser(-10 - 100i,0.2,1,-1,tmin).params(fit_color,chirp);
+                upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,tmax).params(fit_color,chirp);
+                %===== Determine Unnecessary Parameters =
+                if fit_color
+                    del_pos = [4 3] * size(guess,1) - size(guess,1) + 1;
+                else
+                    del_pos = [5 4] * size(guess,1) - size(guess,1) + 1;
+                end
+                %===== Reshape Parameter Matrix =========
+                guess = reshape(guess,1,[]);
+                lower_bound = reshape(lower_bound,1,[]);
+                upper_bound = reshape(upper_bound,1,[]);
+                %===== Remove Unnecessary Parameters ====
+                for pos = del_pos
+                    guess(pos) = [];
+                    lower_bound(pos) = [];
+                    upper_bound(pos) = [];
+                end
             else
-                del_pos = [5 4] * size(guess,1) - size(guess,1) + 1;
-            end
-            %===== Reshape Parameter Matrix =========
-            guess = reshape(guess,1,[]);
-            lower_bound = reshape(lower_bound,1,[]);
-            upper_bound = reshape(upper_bound,1,[]);
-            %===== Remove Unnecessary Parameters ====
-            for pos = del_pos
-                guess(pos) = [];
-                lower_bound(pos) = [];
-                upper_bound(pos) = [];
+                guess = initial_guess.params(fit_color,true);
+                lower_bound = ones(N_gaussians,1) * Laser(-10 - 100i,0.2,1,-1,tmin).params(fit_color,true);
+                upper_bound = ones(N_gaussians,1) * Laser(10 + 100i,1.5,1000,1,tmax).params(fit_color,true);
             end
             
             %===== Begin Fitting Procedure ==========
@@ -245,31 +252,40 @@ try % Try-catch to dump results on error
                 %===== Window Data ==================
                 sample_data = filter(tau)';
                 
-                %===== Objective Function Setup =====
-                err = @(basis) abs(calc(basis,tau,N_gaussians,del_pos) - sample_data)./max(abs(sample_data));
-                %===== Fit Sampling of Data =========
-                new_guess = lsqnonlin(err,guess,lower_bound,upper_bound,options);
-                guess = new_guess;
-                if checkpoint % Save on each iteration
-                    temp_guess = guess;
-                    for pos = flip(del_pos)
-                        temp_guess = [temp_guess(1:pos-1) 0 temp_guess(pos:end)];
-                    end
-                    temp_guess = reshape(temp_guess,N_gaussians,[]);
-                    omega_list = [];
-                    for i=1:length(omega)
-                        omega_list = [omega_list omega(i)*ones(N_gaussians/size(unknown_harmonics,2),1)];
-                    end
-                    current_guess = Laser.generate(temp_guess,chirp,omega_list);
-                    save(['checkpoint_' num2str(percent) 'percent.mat'],'current_guess');
-                end % Checkpoint
+                if ~freeze_nochirp
+                    %===== Objective Function Setup =====
+                    err = @(basis) abs(calc(basis,tau,N_gaussians,del_pos) - sample_data)./max(abs(sample_data));
+                    %===== Fit Sampling of Data =========
+                    new_guess = lsqnonlin(err,guess,lower_bound,upper_bound,options);
+                    guess = new_guess;
+                    if checkpoint % Save on each iteration
+                        temp_guess = guess;
+                        for pos = flip(del_pos)
+                            temp_guess = [temp_guess(1:pos-1) 0 temp_guess(pos:end)];
+                        end
+                        temp_guess = reshape(temp_guess,N_gaussians,[]);
+                        omega_list = [];
+                        for i=1:length(omega)
+                            omega_list = [omega_list omega(i)*ones(N_gaussians/size(unknown_harmonics,2),1)];
+                        end
+                        current_guess = Laser.generate(temp_guess,chirp,omega_list);
+                        save(['checkpoint_' num2str(percent) 'percent.mat'],'current_guess');
+                    end % Checkpoint
+                else
+                    err = @(basis) abs(calc([guess(:,1:4) basis],tau,N_gaussians,[]) - sample_data)./max(abs(sample_data));
+                    %===== Fit Sampling of Data =========
+                    new_guess = lsqnonlin(err,guess(:,5),lower_bound(:,5),upper_bound(:,5),options);
+                    guess = [guess(:,1:4) new_guess];
+                end
             end % Loop over `percentages
-            %===== Undo Removal of Parameters =======
-            for pos = flip(del_pos)
-                guess = [guess(1:pos-1) 0 guess(pos:end)];
+            if ~freeze_nochirp
+                %===== Undo Removal of Parameters =======
+                for pos = flip(del_pos)
+                    guess = [guess(1:pos-1) 0 guess(pos:end)];
+                end
+                %===== Reshape Parameter Matrix =========
+                guess = reshape(guess,N_gaussians,[]);
             end
-            %===== Reshape Parameter Matrix =========
-            guess = reshape(guess,N_gaussians,[]);
         
             %===== Calculate Ionization Error =======
             err = @(basis) abs(calc(basis,correlation_delay,N_gaussians,[]) - known)./max(abs(known));
