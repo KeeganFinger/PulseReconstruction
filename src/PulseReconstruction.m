@@ -27,13 +27,13 @@ options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-16,...
     'MaxFunctionEvaluations',N_iterations*20,'MaxIterations',N_iterations,...
     'FiniteDifferenceType','forward','UseParallel',true,'Display','iter');
 %========== File and Directory Names ========
-data_dir = './data/';
+data_dir = '../../../data/';
 filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'')...
             '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'')...
             '_chirp' num2str(chirp) '.mat'];
 %========== Overload Parameters =============
-overload_guess = true;
-overload_file = './results/helium/fit_harm09_Npulses1_chirp0.mat';
+overload_guess = false;
+overload_file = 'fit_harm09_Npulses1_chirp0.mat';
 overload_var = 'guesses';
 %========== Setup Delay Sweep ===============
 tau_max = 1000; dtau = 0.2;
