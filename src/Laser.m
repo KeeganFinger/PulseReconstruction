@@ -142,5 +142,13 @@ classdef Laser
             % Returns field amplitude in au
             amplitude = sqrt(intensity ./ 3.51e16);
         end
+        function duration_SI = SI2au_duration(duration_au)
+            % Return time duration in fs
+            duration_SI = duration_au / 41.32;
+        end
+        function duration_au = au2SI_duration(duration_SI)
+            % Return time duration in fs
+            duration_au = duration_SI * 41.32;
+        end
     end
 end
