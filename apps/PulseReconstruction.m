@@ -1,11 +1,3 @@
-%TODO
-% -One gaussian Helium 9th harmonic - check autocorrelation signal
-% -Two gaussian Helium 9th harmonic
-% -One gaussian Helium 11th harmonic
-% -Two gaussian Helium 11th harmonic
-% -One gaussian Hydrogen 9th+11th harmonic
-% -Two gaussian Hydrogen 9th+11th harmonic
-%%
 %===== Clear Previous Data ==================
 close all; clear all;
 %%

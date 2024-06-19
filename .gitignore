@@ -1,1 +1,6 @@
 *.asv
+startup.m
+*.h5
+plots/*
+results/*
+data/information_analysis.mat
