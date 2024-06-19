@@ -27,7 +27,7 @@ options = optimoptions(@lsqnonlin,'FunctionTolerance',1e-16,...
     'MaxFunctionEvaluations',N_iterations*20,'MaxIterations',N_iterations,...
     'FiniteDifferenceType','forward','UseParallel',true,'Display','iter');
 %========== File and Directory Names ========
-data_dir = '../../../data/';
+data_dir = 'data/';
 filename = ['fit_harm' strjoin(cellstr(num2str(unknown_harmonics','%02d')),'')...
             '_Npulses' strjoin(cellstr(num2str(reconstruction_gaussian_list')),'')...
             '_chirp' num2str(chirp) '.mat'];
@@ -127,7 +127,10 @@ if gaussian_expand
     end % Loop over `unknown_harmonics`
     save('expanded_harmonics.mat','gaussian_trains');
 else % Use precomputed data if available
-    load([data_dir 'helium_experiment_16g.mat']);
+    load([data_dir 'harmonic_expansion.mat']);
+    gaussian_train_9 = Laser.generate(harm9,true);
+    gaussian_train_11 = Laser.generate(harm11,true);
+    gaussian_train_13 = Laser.generate(harm13,true);
 end
 
 %%
